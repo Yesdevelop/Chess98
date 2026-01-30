@@ -32,6 +32,30 @@ async function isEndGame(driver) {
     }
 }
 
+async function movePiece(el1, el2) {
+    // 高亮
+    await driver.executeScript("arguments[0].style.border='3px solid red';", el1)
+    await driver.executeScript("arguments[0].style.border='3px solid red';", el2)
+
+    // 拖动步进（防止出现粘连情况）
+    const startRect = await el1.getRect()
+    const endRect = await el2.getRect()
+    const startX = Math.ceil(startRect.x + startRect.width / 2)
+    const startY = Math.ceil(startRect.y + startRect.height / 2)
+    const endX = Math.ceil(endRect.x + endRect.width / 2)
+    const endY = Math.ceil(endRect.y + endRect.height / 2)
+    await driver.actions({ bridge: true })
+        .move({ x: startX, y: startY })
+        .click()
+        .move({ x: endX, y: endY, duration: 300 })
+        .click()
+        .perform()
+
+    // 移除高亮
+    await driver.executeScript("arguments[0].style.border='';", el1)
+    await driver.executeScript("arguments[0].style.border='';", el2)
+}
+
 // 获取Chess98的走法
 async function getChess98LastMove(driver) {
     isEndGame(driver)
@@ -81,6 +105,7 @@ async function getChess98LastMove(driver) {
         })
     })
 }
+
 
 // 在网页上执行步进
 async function doMoveOnWeb(driver) {
