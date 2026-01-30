@@ -24,13 +24,22 @@ protected:
 public:
     REGION_ROOK getRookRegion(UINT32 bitline, int index, int endpos);
     REGION_CANNON getCannonRegion(UINT32 bitline, int index, int endpos);
-    UINT32 getBitlineX(int x) const { return this->xBitBoard[x]; }
-    UINT32 getBitlineY(int y) const { return this->yBitBoard[y]; }
+    UINT32 getBitlineX(int x) const
+    {
+        return this->xBitBoard[x];
+    }
+    UINT32 getBitlineY(int y) const
+    {
+        return this->yBitBoard[y];
+    }
     void doMove(int x1, int y1, int x2, int y2);
     void undoMove(int x1, int y1, int x2, int y2, bool eaten);
 
 protected:
-    UINT32 getBit(UINT32 bitline, int index) const { return (bitline >> index) & 1; }
+    UINT32 getBit(UINT32 bitline, int index) const
+    {
+        return (bitline >> index) & 1;
+    }
     void setBit(int x, int y);
     void deleteBit(int x, int y);
     REGION_ROOK generateRookRegion(UINT32 bitline, int index) const;
@@ -44,7 +53,8 @@ Bitboard::Bitboard(PIECEID_MAP pieceidMap)
     {
         for (int y = 0; y < 10; y++)
         {
-            if (pieceidMap[x][y] != EMPTY_PIECEID) this->setBit(x, y);
+            if (pieceidMap[x][y] != EMPTY_PIECEID)
+                this->setBit(x, y);
         }
     }
     // 初始化车、炮的着法缓存

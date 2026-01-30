@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "nnue.hpp"
 #include "base.hpp"
+#include "nnue.hpp"
 
 using WEIGHT_MAP = std::array<std::array<int, 10>, 9>;
 

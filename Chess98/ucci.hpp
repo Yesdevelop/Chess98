@@ -33,8 +33,14 @@ public:
     std::thread searchThread{};
 
 public:
-    std::string fen() const { return pieceidmapToFen(search->board.pieceidMap, search->board.team); }
-    MOVES history() const { return search->board.historyMoves; }
+    std::string fen() const
+    {
+        return pieceidmapToFen(search->board.pieceidMap, search->board.team);
+    }
+    MOVES history() const
+    {
+        return search->board.historyMoves;
+    }
     std::string convertToUCCIMove(Move move) const
     {
         std::string ret = "";
@@ -124,7 +130,8 @@ void UCCI::cli()
                 size_t pos = 2;
                 auto nextToken = [&](size_t& p) -> std::string {
                     p = cmd.find_first_not_of(' ', p);
-                    if (p == std::string::npos) return "";
+                    if (p == std::string::npos)
+                        return "";
                     size_t q = cmd.find(' ', p);
                     std::string tok = (q == std::string::npos) ? cmd.substr(p) : cmd.substr(p, q - p);
                     p = (q == std::string::npos) ? std::string::npos : q + 1;

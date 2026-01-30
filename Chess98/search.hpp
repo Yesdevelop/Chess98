@@ -199,7 +199,7 @@ Result Search::searchOpenBook() const
     {
         return Result{Move{}, -1};
     }
-    
+
     struct Book
     {
         uint32_t dwZobristLock;

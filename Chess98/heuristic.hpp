@@ -7,7 +7,10 @@ class HistoryTable
 {
 public:
     HistoryTable() = default;
-    void reset() { this->historyTable = std::make_unique<HISTORY_TABLE>(); }
+    void reset()
+    {
+        this->historyTable = std::make_unique<HISTORY_TABLE>();
+    }
 
 protected:
     using HISTORY_TABLE = std::array<std::array<std::array<int, 90>, 90>, 2>;
@@ -41,7 +44,10 @@ class KillerTable
 {
 public:
     KillerTable() = default;
-    void reset() { this->killerMoves = std::make_unique<KILLER_MOVES>(); }
+    void reset()
+    {
+        this->killerMoves = std::make_unique<KILLER_MOVES>();
+    }
 
 protected:
     using KILLER_MOVES = std::array<std::array<Move, 2>, 64>;
@@ -94,7 +100,10 @@ protected:
     int hashSize = 0;
 
 protected:
-    int vlAdjust(int vl, int nDistance) const { return vl + (vl <= -BAN ? nDistance : (vl >= BAN ? -nDistance : 0)); }
+    int vlAdjust(int vl, int nDistance) const
+    {
+        return vl + (vl <= -BAN ? nDistance : (vl >= BAN ? -nDistance : 0));
+    }
 
 public:
     void set(Board& board, Move goodMove, int vl, NODE_TYPE type, int depth)

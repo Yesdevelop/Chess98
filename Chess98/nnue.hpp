@@ -4,9 +4,9 @@
 
 #ifdef NNUE
 
+#include "base.hpp"
 #include <torch/script.h>
 #include <torch/torch.h>
-#include "base.hpp"
 
 using MODEL = torch::jit::script::Module;
 using TENSOR = torch::Tensor;

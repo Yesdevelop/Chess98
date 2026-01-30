@@ -1,7 +1,7 @@
 ﻿#pragma once
+#include "bitboard.hpp"
 #include "evaluate.hpp"
 #include "hash.hpp"
-#include "bitboard.hpp"
 
 class Board
 {
@@ -30,14 +30,38 @@ public:
     std::map<PIECEID, std::vector<PIECE_INDEX>> pieceTypes{};
 
 public:
-    bool isKingLive(TEAM team) const { return team == RED ? getPieceByType(R_KING).isLive : getPieceByType(B_KING).isLive; }
-    int evaluate() const { return team == RED ? vlRed - vlBlack + vlAdvanced : vlBlack - vlRed + vlAdvanced; };
-    void doNullMove() { team = -team; }
-    void undoNullMove() { team = -team; }
-    bool nullOkay() const { return team == RED ? vlRed : vlBlack > 10000 + 600; }
-    bool nullSafe() const { return team == RED ? vlRed : vlBlack > 10000 + 1200; }
-    UINT32 getBitLineX(int x) const { return bitboard->getBitlineX(x); }
-    UINT32 getBitLineY(int y) const { return this->bitboard->getBitlineY(y); }
+    bool isKingLive(TEAM team) const
+    {
+        return getPieceByType(team == RED ? R_KING : B_KING).isLive;
+    }
+    int evaluate() const
+    {
+        return team == RED ? vlRed - vlBlack + vlAdvanced : vlBlack - vlRed + vlAdvanced;
+    };
+    void doNullMove()
+    {
+        team = -team;
+    }
+    void undoNullMove()
+    {
+        team = -team;
+    }
+    bool nullOkay() const
+    {
+        return team == RED ? vlRed : vlBlack > 10000 + 600;
+    }
+    bool nullSafe() const
+    {
+        return team == RED ? vlRed : vlBlack > 10000 + 1200;
+    }
+    UINT32 getBitLineX(int x) const
+    {
+        return bitboard->getBitlineX(x);
+    }
+    UINT32 getBitLineY(int y) const
+    {
+        return this->bitboard->getBitlineY(y);
+    }
 
 public:
     PIECEID pieceidOn(int x, int y) const;
@@ -66,18 +90,36 @@ public:
     bool isValidMoveInSituation(Move move);
 
 protected:
-    void changeSide() { this->team = -this->team; }
-    void addDistane() { this->distance++; }
-    void reduceDistance() { this->distance--; }
+    void changeSide()
+    {
+        this->team = -this->team;
+    }
+    void addDistane()
+    {
+        this->distance++;
+    }
+    void reduceDistance()
+    {
+        this->distance--;
+    }
     void historyMovePush(const Move& move, const Piece& attacker, const Piece& captured)
     {
         this->historyMoves.emplace_back(move);
         this->historyMoves.back().attacker = attacker;
         this->historyMoves.back().captured = captured;
     }
-    void historyMovePop() { this->historyMoves.pop_back(); }
-    void bitboardDoMove(int x1, int y1, int x2, int y2) { this->bitboard->doMove(x1, y1, x2, y2); }
-    void bitboardUndoMove(int x1, int y1, int x2, int y2, const bool& eaten) { this->bitboard->undoMove(x1, y1, x2, y2, eaten); }
+    void historyMovePop()
+    {
+        this->historyMoves.pop_back();
+    }
+    void bitboardDoMove(int x1, int y1, int x2, int y2)
+    {
+        this->bitboard->doMove(x1, y1, x2, y2);
+    }
+    void bitboardUndoMove(int x1, int y1, int x2, int y2, const bool& eaten)
+    {
+        this->bitboard->undoMove(x1, y1, x2, y2, eaten);
+    }
     void piecePositionDoMove(int x1, int y1, int x2, int y2)
     {
         const Piece& attacker = this->piecePosition(x1, y1);
@@ -352,7 +394,8 @@ bool Board::isRepeated() const
         // 长捉情况比较特殊
         // 只有车、马、炮能作为长捉的发起者
         // 发起者不断捉同一个子, 判负
-        if (abs(ply1.attacker.pieceid) == R_ROOK || abs(ply1.attacker.pieceid) == R_KNIGHT || abs(ply1.attacker.pieceid) == R_CANNON)
+        if (abs(ply1.attacker.pieceid) == R_ROOK || abs(ply1.attacker.pieceid) == R_KNIGHT ||
+            abs(ply1.attacker.pieceid) == R_CANNON)
         {
             const Piece& attacker = ply1.attacker;
             const Piece& captured = ply2.attacker;
@@ -1021,7 +1064,8 @@ bool Board::isValidMoveInSituation(Move move)
     if (move.attacker.team != this->team) // 若攻击者的队伍和当前队伍不一致, 则一定是不合理着法
         return false;
     PIECEID captured = this->pieceidOn(move.x2, move.y2);
-    if (captured != 0 && this->teamOn(move.x2, move.y2) == this->teamOn(move.x1, move.y1)) // 吃子着法, 若吃子者和被吃者同队伍, 则一定不合理
+    if (captured != 0 && this->teamOn(move.x2, move.y2) ==
+                             this->teamOn(move.x1, move.y1)) // 吃子着法, 若吃子者和被吃者同队伍, 则一定不合理
         return false;
 
     // 分类
@@ -1032,11 +1076,13 @@ bool Board::isValidMoveInSituation(Move move)
         // 生成车的着法范围, 看是否有障碍物
         UINT32 bitlineX = this->getBitLineX(move.x1);
         REGION_ROOK regionX = this->bitboard->getRookRegion(bitlineX, move.y1, 9);
-        if (move.y2 < regionX[0] || move.y2 > regionX[1]) return false;
+        if (move.y2 < regionX[0] || move.y2 > regionX[1])
+            return false;
         // 横向
         UINT32 bitlineY = this->getBitLineY(move.y1);
         REGION_ROOK regionY = this->bitboard->getRookRegion(bitlineY, move.x1, 8);
-        if (move.x2 < regionY[0] || move.x2 > regionY[1]) return false;
+        if (move.x2 < regionY[0] || move.x2 > regionY[1])
+            return false;
     }
     else if (abs(attacker) == R_KNIGHT)
     {
@@ -1044,20 +1090,23 @@ bool Board::isValidMoveInSituation(Move move)
         {
             if (move.y1 - 2 == move.y2 && this->pieceidOn(move.x1, move.y1 - 1) != 0) // 若有障碍物则不合理
                 return false;
-            if (move.y1 + 2 == move.y2 && this->pieceidOn(move.x1, move.y1 + 1) != 0) return false;
+            if (move.y1 + 2 == move.y2 && this->pieceidOn(move.x1, move.y1 + 1) != 0)
+                return false;
         }
         else
         {
             if (move.x1 - 2 == move.x2 && this->pieceidOn(move.x1 - 1, move.y1) != 0) // 若有障碍物则不合理
                 return false;
-            if (move.x1 + 2 == move.x2 && this->pieceidOn(move.x1 + 1, move.y1) != 0) return false;
+            if (move.x1 + 2 == move.x2 && this->pieceidOn(move.x1 + 1, move.y1) != 0)
+                return false;
         }
         return true;
     }
     else if (abs(attacker) == R_BISHOP)
     {
         // 象走法, 不能有障碍物
-        if (this->pieceidOn((move.x1 + move.x2) / 2, (move.y1 + move.y2) / 2) != 0) return false;
+        if (this->pieceidOn((move.x1 + move.x2) / 2, (move.y1 + move.y2) / 2) != 0)
+            return false;
     }
     else if (abs(attacker) == R_CANNON)
     {
@@ -1066,11 +1115,13 @@ bool Board::isValidMoveInSituation(Move move)
         // 生成炮的着法范围
         UINT32 bitlineX = this->getBitLineX(move.x1);
         REGION_CANNON regionX = this->bitboard->getCannonRegion(bitlineX, move.y1, 9);
-        if ((move.y2 <= regionX[1] || move.y2 >= regionX[2] + 1) && move.y2 != regionX[0] && move.y2 != regionX[3]) return false;
+        if ((move.y2 <= regionX[1] || move.y2 >= regionX[2] + 1) && move.y2 != regionX[0] && move.y2 != regionX[3])
+            return false;
         // 横向
         UINT32 bitlineY = this->getBitLineY(move.y1);
         REGION_CANNON regionY = this->bitboard->getCannonRegion(bitlineY, move.x1, 8);
-        if ((move.x2 <= regionY[1] || move.x2 >= regionY[2]) && move.x2 != regionY[0] && move.x2 != regionY[3]) return false;
+        if ((move.x2 <= regionY[1] || move.x2 >= regionY[2]) && move.x2 != regionY[0] && move.x2 != regionY[3])
+            return false;
     }
 
     this->doMoveSimple(move);

@@ -20,7 +20,10 @@ Move getRandomMoveFromVector(const MOVES& vec);
 Move getRandomMoveFromVector(const MOVES& vec)
 {
     std::mt19937_64 engine(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-    if (vec.empty()) return {};
+    if (vec.empty())
+    {
+        return {};
+    }
     std::uniform_int_distribution<size_t> dist(0, vec.size() - 1);
     return vec[dist(engine)];
 }
@@ -129,7 +132,8 @@ Result SearchGenfiles::searchMain(int maxDepth, int maxTime)
     std::string str = "";
     for (int depth = 1; depth <= maxDepth; depth++)
     {
-        str = "{\"fen\":\"" + pieceidmapToFen(board.pieceidMap, board.team) + "\",\"history\":[" + historyStr + "],\"data\":[";
+        str = "{\"fen\":\"" + pieceidmapToFen(board.pieceidMap, board.team) + "\",\"history\":[" + historyStr +
+              "],\"data\":[";
         bestNode = searchRoot(depth);
 
         auto end = std::chrono::high_resolution_clock::now();

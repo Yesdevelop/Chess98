@@ -173,7 +173,10 @@ void ui(TEAM team, bool aiFirst, int maxDepth, int maxTime, std::string fenCode)
             // 人机做出决策
             Result node = s.searchMain(maxDepth, maxTime);
             board.doMove(node.move);
-            if (board.inCheck(board.team)) board.historyMoves.back().isCheckingMove = true;
+            if (board.inCheck(board.team))
+            {
+                board.historyMoves.back().isCheckingMove = true;
+            }
 
             setBoardCode(board);
             readFile("./_move_.txt", moveFileContent);

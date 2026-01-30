@@ -2,21 +2,21 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <ctime>
+#include <fstream>
+#include <functional>
+#include <future>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <random>
 #include <string>
-#include <vector>
-#include <functional>
-#include <chrono>
-#include <unordered_map>
-#include <memory>
-#include <fstream>
 #include <thread>
-#include <future>
+#include <unordered_map>
+#include <vector>
 #ifdef _WIN32
 #include <windows.h>
 #elif __unix__
@@ -82,7 +82,8 @@ const SEARCH_TYPE PV = 1;
 const SEARCH_TYPE CUT = 2;
 const SEARCH_TYPE QUIESC = 3;
 const std::vector<PIECEID> ALL_PIECEIDS = {
-    R_KING, R_GUARD, R_BISHOP, R_KNIGHT, R_ROOK, R_CANNON, R_PAWN, B_KING, B_GUARD, B_BISHOP, B_KNIGHT, B_ROOK, B_CANNON, B_PAWN,
+    R_KING, R_GUARD, R_BISHOP, R_KNIGHT, R_ROOK, R_CANNON, R_PAWN,
+    B_KING, B_GUARD, B_BISHOP, B_KNIGHT, B_ROOK, B_CANNON, B_PAWN,
 };
 void wait(int ms);
 void command(std::string str);
@@ -96,7 +97,9 @@ class Piece
 {
 public:
     Piece() = default;
-    Piece(PIECEID pieceid) : pieceid(pieceid) {}
+    Piece(PIECEID pieceid) : pieceid(pieceid)
+    {
+    }
     Piece(PIECEID pieceid, int x, int y, PIECE_INDEX pieceIndex) : pieceid(pieceid), x(x), y(y), pieceIndex(pieceIndex)
     {
         if (this->pieceid == EMPTY_PIECEID)
@@ -139,9 +142,15 @@ public:
         this->endpos = x2 * 10 + y2;
     }
 
-    constexpr bool operator==(const Move& move) const { return this->id == move.id; }
+    constexpr bool operator==(const Move& move) const
+    {
+        return this->id == move.id;
+    }
 
-    constexpr bool operator!=(const Move& move) const { return this->id != move.id; }
+    constexpr bool operator!=(const Move& move) const
+    {
+        return this->id != move.id;
+    }
 
 public:
     int id = -1;
@@ -162,7 +171,9 @@ class Result
 {
 public:
     Result() = default;
-    Result(Move move, int vl) : move(move), vl(vl) {}
+    Result(Move move, int vl) : move(move), vl(vl)
+    {
+    }
 
 public:
     Move move{};
@@ -173,7 +184,9 @@ class Trick
 {
 public:
     Trick() = default;
-    Trick(int result) : success(true), data(result) {}
+    Trick(int result) : success(true), data(result)
+    {
+    }
 
 public:
     bool success = false;
@@ -225,7 +238,10 @@ protected:
     int printedDepth = 0;
 
 public:
-    void setSituation(const std::string& fen) { situation = fen; }
+    void setSituation(const std::string& fen)
+    {
+        situation = fen;
+    }
 
     void setBookmove()
     {
