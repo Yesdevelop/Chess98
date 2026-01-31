@@ -209,7 +209,7 @@ Result Search::searchOpenBook() const
         uint16_t wmv;
         uint16_t wvl;
 
-        static int bookPosCmp(const Book &bk, int32 hashLock)
+        static int bookPosCmp(const Book &bk, int hashLock)
         {
             uint32_t bookLock = bk.dwZobristLock;
             uint32_t boardLock = static_cast<uint32_t>(hashLock);
@@ -270,9 +270,9 @@ Result Search::searchOpenBook() const
 
     // 二分法查找开局库
     int nMid = 0;
-    int32 hashLock = board.hashLock;
-    int32 mirrorHashLock = 0;
-    int32 mirrorHashKey = 0;
+    int hashLock = board.hash_lock;
+    int mirrorHashLock = 0;
+    int mirrorHashKey = 0;
 
     for (int x = 0; x < 9; x++)
     {
@@ -294,7 +294,7 @@ Result Search::searchOpenBook() const
     }
 
     int nScan = 0;
-    int32 nowHashLock = 0;
+    int nowHashLock = 0;
 
     for (nScan = 0; nScan < 2; nScan++)
     {
@@ -728,7 +728,7 @@ int Search::searchCut(int depth, int beta, bool banNullMove)
         for (const Move &move : killerAvailableMoves)
         {
             board.doMove(move);
-            int vl = -searchCut(depth - 1, -beta + 1);
+            vl = -searchCut(depth - 1, -beta + 1);
             board.undoMove();
 
             if (vl > vlBest)

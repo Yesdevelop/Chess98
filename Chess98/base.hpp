@@ -1,17 +1,14 @@
 ﻿#pragma once
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <cstring>
 #include <ctime>
 #include <fstream>
-#include <functional>
 #include <future>
 #include <iostream>
 #include <map>
-#include <memory>
 #include <random>
 #include <string>
 #include <thread>
@@ -31,8 +28,6 @@ class TransItem;
 class Information;
 using uint64 = unsigned long long;
 using uint32 = unsigned int;
-using int32 = int;
-using HASH_KEY_MAP = const std::array<std::array<int32, 10>, 9>;
 using PIECE_INDEX = int;
 using PIECEID = int;
 using TEAM = int;
@@ -82,8 +77,7 @@ const SEARCH_TYPE PV = 1;
 const SEARCH_TYPE CUT = 2;
 const SEARCH_TYPE QUIESC = 3;
 const std::vector<PIECEID> ALL_PIECEIDS = {
-    R_KING, R_GUARD, R_BISHOP, R_KNIGHT, R_ROOK, R_CANNON, R_PAWN,
-    B_KING, B_GUARD, B_BISHOP, B_KNIGHT, B_ROOK, B_CANNON, B_PAWN,
+    R_KING, R_GUARD, R_BISHOP, R_KNIGHT, R_ROOK, R_CANNON, R_PAWN, B_KING, B_GUARD, B_BISHOP, B_KNIGHT, B_ROOK, B_CANNON, B_PAWN,
 };
 void wait(int ms);
 void command(std::string str);
@@ -199,16 +193,16 @@ class TransItem
     TransItem() = default;
 
   public:
-    int32 hashLock = 0;
-    int32 vlExact = -INF;
-    int32 vlBeta = -INF;
-    int32 vlAlpha = -INF;
-    int32 exactDepth = 0;
-    int32 betaDepth = 0;
-    int32 alphaDepth = 0;
-    Move exactMove{};
-    Move betaMove{};
-    Move alphaMove{};
+    int hash_lock = 0;
+    int vlExact = -INF;
+    int vlBeta = -INF;
+    int vlAlpha = -INF;
+    int exactDepth = 0;
+    int betaDepth = 0;
+    int alphaDepth = 0;
+    Move exact_move{};
+    Move beta_move{};
+    Move alpha_move{};
 };
 
 class Information
@@ -295,7 +289,7 @@ class Information
 
 void wait(int ms)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
 void command(std::string str)

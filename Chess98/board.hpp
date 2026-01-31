@@ -13,10 +13,10 @@ class Board
     int distance = 0;
     int vlRed = 0;
     int vlBlack = 0;
-    int32 hashKey = 0;
-    int32 hashLock = 0;
-    std::vector<int32> hashKeyList{};
-    std::vector<int32> hashLockList{};
+    int hashKey = 0;
+    int hash_lock = 0;
+    std::vector<int> hashKeyList{};
+    std::vector<int> hashLockList{};
 
   public:
     PIECEID_MAP pieceidMap{};
@@ -87,7 +87,7 @@ class Board
     void calculateVlOpen(int &vlOpen) const;
     void vlAttackCalculator(int &vlRedAttack, int &vlBlackAttack) const;
     void initHashInfo();
-    bool isValidMoveInSituation(Move move);
+    bool is_valid_move(Move move);
 
   protected:
     void changeSide()
@@ -202,24 +202,24 @@ class Board
     {
         // 记录旧哈希值
         this->hashKeyList.emplace_back(this->hashKey);
-        this->hashLockList.emplace_back(this->hashLock);
+        this->hashLockList.emplace_back(this->hash_lock);
         // 更新哈希值
-        this->hashKey ^= HASHKEYS[attacker.pieceid][x1][y1];
-        this->hashKey ^= HASHKEYS[attacker.pieceid][x2][y2];
-        this->hashLock ^= HASHLOCKS[attacker.pieceid][x1][y1];
-        this->hashLock ^= HASHLOCKS[attacker.pieceid][x2][y2];
+        this->hashKey ^= get_hash_key(attacker.pieceid, x1, y1);
+        this->hashKey ^= get_hash_key(attacker.pieceid, x2, y2);
+        this->hash_lock ^= get_hash_lock(attacker.pieceid, x1, y1);
+        this->hash_lock ^= get_hash_lock(attacker.pieceid, x2, y2);
         if (captured.pieceid != EMPTY_PIECEID)
         {
-            this->hashKey ^= HASHKEYS[captured.pieceid][x1][y1];
-            this->hashLock ^= HASHLOCKS[captured.pieceid][x2][y2];
+            this->hashKey ^= get_hash_key(captured.pieceid, x1, y1);
+            this->hash_lock ^= get_hash_lock(captured.pieceid, x2, y2);
         }
         this->hashKey ^= PLAYER_KEY;
-        this->hashLock ^= PLAYER_LOCK;
+        this->hash_lock ^= PLAYER_LOCK;
     }
     void undoHashUpdate()
     {
         this->hashKey = this->hashKeyList.back();
-        this->hashLock = this->hashLockList.back();
+        this->hash_lock = this->hashLockList.back();
         this->hashKeyList.pop_back();
         this->hashLockList.pop_back();
     }
@@ -394,8 +394,7 @@ bool Board::isRepeated() const
         // 长捉情况比较特殊
         // 只有车、马、炮能作为长捉的发起者
         // 发起者不断捉同一个子, 判负
-        if (abs(ply1.attacker.pieceid) == R_ROOK || abs(ply1.attacker.pieceid) == R_KNIGHT ||
-            abs(ply1.attacker.pieceid) == R_CANNON)
+        if (abs(ply1.attacker.pieceid) == R_ROOK || abs(ply1.attacker.pieceid) == R_KNIGHT || abs(ply1.attacker.pieceid) == R_CANNON)
         {
             const Piece &attacker = ply1.attacker;
             const Piece &captured = ply2.attacker;
@@ -1034,7 +1033,7 @@ void Board::vlAttackCalculator(int &vlRedAttack, int &vlBlackAttack) const
 void Board::initHashInfo()
 {
     this->hashKey = 0;
-    this->hashLock = 0;
+    this->hash_lock = 0;
     for (int x = 0; x < 9; x++)
     {
         for (int y = 0; y < 10; y++)
@@ -1043,18 +1042,18 @@ void Board::initHashInfo()
             if (pid != EMPTY_PIECEID)
             {
                 this->hashKey ^= HASHKEYS[pid][x][y];
-                this->hashLock ^= HASHLOCKS[pid][x][y];
+                this->hash_lock ^= HASHLOCKS[pid][x][y];
             }
         }
     }
     if (this->team == BLACK)
     {
         this->hashKey ^= PLAYER_KEY;
-        this->hashLock ^= PLAYER_LOCK;
+        this->hash_lock ^= PLAYER_LOCK;
     }
 }
 
-bool Board::isValidMoveInSituation(Move move)
+bool Board::is_valid_move(Move move)
 {
     PIECEID attacker = this->pieceidOn(move.x1, move.y1);
     if (attacker == 0) // 若攻击者不存在, 则一定是不合理着法
@@ -1064,8 +1063,7 @@ bool Board::isValidMoveInSituation(Move move)
     if (move.attacker.team != this->team) // 若攻击者的队伍和当前队伍不一致, 则一定是不合理着法
         return false;
     PIECEID captured = this->pieceidOn(move.x2, move.y2);
-    if (captured != 0 && this->teamOn(move.x2, move.y2) ==
-                             this->teamOn(move.x1, move.y1)) // 吃子着法, 若吃子者和被吃者同队伍, 则一定不合理
+    if (captured != 0 && this->teamOn(move.x2, move.y2) == this->teamOn(move.x1, move.y1)) // 吃子着法, 若吃子者和被吃者同队伍, 则一定不合理
         return false;
 
     // 分类

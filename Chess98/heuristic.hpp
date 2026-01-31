@@ -2,6 +2,10 @@
 #include "board.hpp"
 #include "movesgen.hpp"
 
+using HISTORY_TABLE = std::array<std::array<std::array<int, 90>, 90>, 2>;
+using KILLER_TABLE = std::array<std::array<Move, 2>, 64>;
+using TRANS_TABLE = std::vector<TransItem>;
+
 // 历史启发
 class HistoryTable
 {
@@ -9,20 +13,19 @@ class HistoryTable
     HistoryTable() = default;
     void reset()
     {
-        this->historyTable = std::make_unique<HISTORY_TABLE>();
+        history_table = std::make_unique<HISTORY_TABLE>();
     }
 
-  protected:
-    using HISTORY_TABLE = std::array<std::array<std::array<int, 90>, 90>, 2>;
-    std::unique_ptr<HISTORY_TABLE> historyTable = std::make_unique<HISTORY_TABLE>();
+  private:
+    std::unique_ptr<HISTORY_TABLE> history_table = std::make_unique<HISTORY_TABLE>();
 
   public:
-    void add(Move move, int depth)
+    void add(Move &move, int &depth)
     {
         const int pos1 = 10 * move.x1 + move.y1;
         const int pos2 = 10 * move.x2 + move.y2;
         const int team = move.attacker.team == RED ? 0 : 1;
-        this->historyTable->at(team)[pos1][pos2] += depth * depth;
+        history_table->at(team)[pos1][pos2] += history_logic(depth);
     }
 
     void sort(MOVES &moves) const
@@ -33,9 +36,15 @@ class HistoryTable
             const int pos2 = 10 * move.x2 + move.y2;
             const int team = move.attacker.team == RED ? 0 : 1;
             move.moveType = HISTORY;
-            move.val = this->historyTable->at(team)[pos1][pos2];
+            move.val = (*history_table)[team][pos1][pos2];
         }
-        std::sort(moves.begin(), moves.end(), [](Move &m1, Move &m2) -> bool { return m1.val > m2.val; });
+        std::sort(moves.begin(), moves.end(), [](Move &a, Move &b) { return a.val > b.val; });
+    }
+
+  private:
+    int history_logic(int &depth) const
+    {
+        return depth * depth;
     }
 };
 
@@ -44,19 +53,19 @@ class KillerTable
 {
   public:
     KillerTable() = default;
+
     void reset()
     {
-        this->killerMoves = std::make_unique<KILLER_MOVES>();
+        killer_table = std::make_unique<KILLER_TABLE>();
     }
 
   protected:
-    using KILLER_MOVES = std::array<std::array<Move, 2>, 64>;
-    std::unique_ptr<KILLER_MOVES> killerMoves = std::make_unique<KILLER_MOVES>();
+    std::unique_ptr<KILLER_TABLE> killer_table = std::make_unique<KILLER_TABLE>();
 
   public:
     void set(Board &board, Move move)
     {
-        std::array<Move, 2> &moves = this->killerMoves->at(board.distance);
+        std::array<Move, 2> &moves = (*killer_table)[board.distance];
         moves[1] = moves[0];
         moves[0] = move;
     }
@@ -64,9 +73,9 @@ class KillerTable
     MOVES get(Board &board) const
     {
         MOVES results{};
-        for (const Move &move : this->killerMoves->at(board.distance))
+        for (const Move &move : (*killer_table)[board.distance])
         {
-            if (board.isValidMoveInSituation(move))
+            if (board.is_valid_move(move))
             {
                 results.emplace_back(move);
             }
@@ -79,91 +88,85 @@ class KillerTable
 class Tt
 {
   public:
-    Tt(uint64 hashLevel = 16)
+    Tt(int hash_level = 16)
     {
-        this->hashSize = 1 << hashLevel;
-        this->hashMask = (1 << hashLevel) - 1;
-        this->items.resize(1ULL << hashLevel);
+        hash_size = pow(2, hash_level);
+        hash_mask = pow(2, hash_level) - 1;
+        trans_table.resize(hash_size);
     }
+
     void reset()
     {
-        for (TransItem &item : this->items)
+        for (TransItem &item : trans_table)
         {
             item = TransItem{};
         }
     }
 
   protected:
-    using HASH_ITEMS = std::vector<TransItem>;
-    HASH_ITEMS items{};
-    int hashMask = 0;
-    int hashSize = 0;
-
-  protected:
-    int vlAdjust(int vl, int nDistance) const
-    {
-        return vl + (vl <= -BAN ? nDistance : (vl >= BAN ? -nDistance : 0));
-    }
+    TRANS_TABLE trans_table{};
+    int hash_mask = 0;
+    int hash_size = 0;
 
   public:
-    void set(Board &board, Move goodMove, int vl, NODE_TYPE type, int depth)
+    void set(Board &board, Move &goodMove, int vl, NODE_TYPE type, int depth)
     {
-        const int pos = static_cast<uint32_t>(board.hashKey) & static_cast<uint32_t>(this->hashMask);
-        TransItem &t = this->items[pos];
-        if (t.hashLock == 0)
+        const int pos = static_cast<uint32_t>(board.hashKey) & static_cast<uint32_t>(this->hash_mask);
+        TransItem &item = trans_table[pos];
+        if (item.hash_lock == 0)
         {
-            t.hashLock = board.hashLock;
+            item.hash_lock = board.hash_lock;
             if (type == EXACT_TYPE)
             {
-                t.exactDepth = depth;
-                t.vlExact = vl;
-                t.exactMove = goodMove;
+                item.exactDepth = depth;
+                item.vlExact = vl;
+                item.exact_move = goodMove;
             }
             else if (type == BETA_TYPE)
             {
-                t.betaDepth = depth;
-                t.vlBeta = vl;
-                t.betaMove = goodMove;
+                item.betaDepth = depth;
+                item.vlBeta = vl;
+                item.beta_move = goodMove;
             }
             else if (type == ALPHA_TYPE)
             {
-                t.alphaDepth = depth;
-                t.vlAlpha = vl;
-                t.alphaMove = goodMove;
+                item.alphaDepth = depth;
+                item.vlAlpha = vl;
+                item.alpha_move = goodMove;
             }
         }
-        else if (t.hashLock == board.hashLock)
+        else if (item.hash_lock == board.hash_lock)
         {
-            if (type == EXACT_TYPE && depth > t.exactDepth)
+            if (type == EXACT_TYPE && depth > item.exactDepth)
             {
-                t.exactDepth = depth;
-                t.vlExact = vl;
-                t.exactMove = goodMove;
+                item.exactDepth = depth;
+                item.vlExact = vl;
+                item.exact_move = goodMove;
             }
-            else if (type == BETA_TYPE && ((depth > t.betaDepth) || (depth == t.betaDepth && vl > t.vlBeta)))
+            else if (type == BETA_TYPE && ((depth > item.betaDepth) || (depth == item.betaDepth && vl > item.vlBeta)))
             {
-                t.betaDepth = depth;
-                t.vlBeta = vl;
-                t.betaMove = goodMove;
+                item.betaDepth = depth;
+                item.vlBeta = vl;
+                item.beta_move = goodMove;
             }
-            else if (type == ALPHA_TYPE && ((depth > t.alphaDepth) || (depth == t.alphaDepth && vl < t.vlAlpha)))
+            else if (type == ALPHA_TYPE && ((depth > item.alphaDepth) || (depth == item.alphaDepth && vl < item.vlAlpha)))
             {
-                t.alphaDepth = depth;
-                t.vlAlpha = vl;
-                t.alphaMove = goodMove;
+                item.alphaDepth = depth;
+                item.vlAlpha = vl;
+                item.alpha_move = goodMove;
             }
         }
     }
 
     int getVl(Board &board, int vlApha, int vlBeta, int depth) const
     {
-        const int pos = static_cast<uint32_t>(board.hashKey) & static_cast<uint32_t>(this->hashMask);
-        const TransItem &t = this->items[pos];
-        if (t.hashLock == board.hashLock)
+        const int pos = static_cast<uint32_t>(board.hashKey) & static_cast<uint32_t>(this->hash_mask);
+        const TransItem &t = this->trans_table[pos];
+        if (t.hash_lock == board.hash_lock)
         {
             if (t.exactDepth >= depth)
             {
-                return vlAdjust(t.vlExact, board.distance);
+                return vl_adjust(t.vlExact, board.distance);
             }
             else if (t.betaDepth >= depth && t.vlBeta >= vlBeta)
             {
@@ -179,23 +182,29 @@ class Tt
 
     Move getMove(Board &board) const
     {
-        const int pos = static_cast<uint32_t>(board.hashKey) & static_cast<uint32_t>(this->hashMask);
-        const TransItem &t = this->items[pos];
-        if (t.hashLock == board.hashLock)
+        const int pos = static_cast<int>(board.hashKey) & static_cast<int>(this->hash_mask);
+        const TransItem &t = this->trans_table[pos];
+        if (t.hash_lock == board.hash_lock)
         {
-            if (board.isValidMoveInSituation(t.exactMove))
+            if (board.is_valid_move(t.exact_move))
             {
-                return t.exactMove;
+                return t.exact_move;
             }
-            else if (board.isValidMoveInSituation(t.betaMove))
+            else if (board.is_valid_move(t.beta_move))
             {
-                return t.betaMove;
+                return t.beta_move;
             }
-            else if (board.isValidMoveInSituation(t.alphaMove))
+            else if (board.is_valid_move(t.alpha_move))
             {
-                return t.alphaMove;
+                return t.alpha_move;
             }
         }
         return Move{};
+    }
+    
+  protected:
+    int vl_adjust(int vl, int nDistance) const
+    {
+        return vl + (vl <= -BAN ? nDistance : (vl >= BAN ? -nDistance : 0));
     }
 };
