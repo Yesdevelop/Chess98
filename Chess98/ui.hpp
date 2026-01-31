@@ -79,7 +79,7 @@ server.on('error', () => { })\n\
 server.listen(9494)\n\
 ";
 
-BOARD_CODE generateCode(Board& board)
+BOARD_CODE generateCode(Board &board)
 {
     const std::map<PIECEID, std::string> PIECE_NAME_PAIRS{
         {R_KING, "RK"},   {R_GUARD, "RG"},  {R_BISHOP, "RB"},      {R_KNIGHT, "RN"},
@@ -119,7 +119,7 @@ PIECEID_MAP decode(BOARD_CODE code)
     return result;
 }
 
-void setBoardCode(Board& board)
+void setBoardCode(Board &board)
 {
     const BOARD_CODE code = generateCode(board);
     const std::string historyMovesBack =
@@ -156,7 +156,7 @@ void ui(TEAM team, bool aiFirst, int maxDepth, int maxTime, std::string fenCode)
 
     // variables
     Search s = Search(pieceidMap, team);
-    Board& board = s.board;
+    Board &board = s.board;
 
     // 界面
     writeFile("./_server_.js", SERVER_CODE);
@@ -211,7 +211,7 @@ void ui(TEAM team, bool aiFirst, int maxDepth, int maxTime, std::string fenCode)
                     Move move{x1, y1, x2, y2};
                     board.doMove(move);
                 }
-                catch (std::exception& e)
+                catch (std::exception &e)
                 {
                     // 避免转换失败导致崩溃
                     std::cerr << "Invalid move: " << moveFileContent << std::endl;

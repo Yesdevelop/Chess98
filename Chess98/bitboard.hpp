@@ -12,16 +12,16 @@ using TYPE_CANNON_CACHE = std::array<std::array<REGION_CANNON, 10>, 1024>;
 
 class Bitboard
 {
-public:
+  public:
     Bitboard(PIECEID_MAP pieceidMap);
 
-protected:
+  protected:
     TYPE_ROOK_CACHE rookCache{};
     TYPE_CANNON_CACHE cannonCache{};
     BITARRAY_X xBitBoard{0, 0, 0, 0, 0, 0, 0, 0, 0};
     BITARRAY_Y yBitBoard{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-public:
+  public:
     REGION_ROOK getRookRegion(UINT32 bitline, int index, int endpos);
     REGION_CANNON getCannonRegion(UINT32 bitline, int index, int endpos);
     UINT32 getBitlineX(int x) const
@@ -35,7 +35,7 @@ public:
     void doMove(int x1, int y1, int x2, int y2);
     void undoMove(int x1, int y1, int x2, int y2, bool eaten);
 
-protected:
+  protected:
     UINT32 getBit(UINT32 bitline, int index) const
     {
         return (bitline >> index) & 1;

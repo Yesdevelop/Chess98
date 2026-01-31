@@ -87,7 +87,7 @@ const std::vector<PIECEID> ALL_PIECEIDS = {
 };
 void wait(int ms);
 void command(std::string str);
-void readFile(std::string filename, std::string& content);
+void readFile(std::string filename, std::string &content);
 void writeFile(std::string filename, std::string content);
 PIECEID_MAP fenToPieceidmap(std::string fenCode);
 std::string pieceidmapToFen(PIECEID_MAP pieceidMap, TEAM team);
@@ -95,7 +95,7 @@ TEAM fenToTeam(std::string fenCode);
 
 class Piece
 {
-public:
+  public:
     Piece() = default;
     Piece(PIECEID pieceid) : pieceid(pieceid)
     {
@@ -121,7 +121,7 @@ public:
         this->isLive = true;
     }
 
-public:
+  public:
     PIECEID pieceid = EMPTY_PIECEID;
     int x = -1;
     int y = -1;
@@ -132,7 +132,7 @@ public:
 
 class Move
 {
-public:
+  public:
     Move() = default;
     Move(int x1, int y1, int x2, int y2, int val = 0, MOVE_TYPE moveType = NORMAL)
         : x1(x1), y1(y1), x2(x2), y2(y2), val(val), moveType(moveType)
@@ -142,17 +142,17 @@ public:
         this->endpos = x2 * 10 + y2;
     }
 
-    constexpr bool operator==(const Move& move) const
+    constexpr bool operator==(const Move &move) const
     {
         return this->id == move.id;
     }
 
-    constexpr bool operator!=(const Move& move) const
+    constexpr bool operator!=(const Move &move) const
     {
         return this->id != move.id;
     }
 
-public:
+  public:
     int id = -1;
     int startpos = -1;
     int endpos = -1;
@@ -169,36 +169,36 @@ public:
 
 class Result
 {
-public:
+  public:
     Result() = default;
     Result(Move move, int vl) : move(move), vl(vl)
     {
     }
 
-public:
+  public:
     Move move{};
     int vl = 0;
 };
 
 class Trick
 {
-public:
+  public:
     Trick() = default;
     Trick(int result) : success(true), data(result)
     {
     }
 
-public:
+  public:
     bool success = false;
     int data = 0;
 };
 
 class TransItem
 {
-public:
+  public:
     TransItem() = default;
 
-public:
+  public:
     int32 hashLock = 0;
     int32 vlExact = -INF;
     int32 vlBeta = -INF;
@@ -213,7 +213,7 @@ public:
 
 class Information
 {
-public:
+  public:
     Information() = default;
     void clear()
     {
@@ -226,7 +226,7 @@ public:
         moveSearched.fill(Move{});
     }
 
-public:
+  public:
     bool isBookmove = false;
     int depth = 0;
     std::string situation = "";
@@ -234,11 +234,11 @@ public:
     std::array<int, ENGINE_MAX_DEPTH> vlSearched{};
     std::array<Move, ENGINE_MAX_DEPTH> moveSearched{};
 
-protected:
+  protected:
     int printedDepth = 0;
 
-public:
-    void setSituation(const std::string& fen)
+  public:
+    void setSituation(const std::string &fen)
     {
         situation = fen;
     }
@@ -303,7 +303,7 @@ void command(std::string str)
     int res = system(str.c_str());
 }
 
-void readFile(std::string filename, std::string& content)
+void readFile(std::string filename, std::string &content)
 {
     std::ifstream file(filename, std::ios::in | std::ios::binary);
     if (!file)

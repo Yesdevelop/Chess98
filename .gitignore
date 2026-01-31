@@ -19,7 +19,7 @@
 **/__pycache__/
 **/*.pyc
 **/node_modules/
-**/dist/
 **/enc_temp_folder
 **/x64/
 **/x86/
+**/out/

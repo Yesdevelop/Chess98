@@ -4,9 +4,12 @@
 
 class Search
 {
-public:
+  public:
     Search() = default;
-    Search(PIECEID_MAP pieceidMap, TEAM team) : board(Board(pieceidMap, team)) {}
+    Search(PIECEID_MAP pieceidMap, TEAM team)
+    {
+        board = Board{pieceidMap, team};
+    }
     void reset()
     {
         this->rootMoves = {};
@@ -20,20 +23,20 @@ public:
         this->info.clear();
     }
 
-public:
+  public:
     Board board{};
     MOVES rootMoves{};
     std::unique_ptr<HistoryTable> history = std::make_unique<HistoryTable>();
     std::unique_ptr<KillerTable> killer = std::make_unique<KillerTable>();
     std::unique_ptr<Tt> tt = std::make_unique<Tt>();
 
-public:
+  public:
     bool useBook = true;
     bool stop = false;
     std::unordered_map<int, bool> bannedMoves{{2324, 1}};
     Information info{};
 
-public:
+  public:
     Result searchMain(int maxDepth, int maxTime);
     Result searchOpenBook() const;
     Result searchRoot(int depth);
@@ -41,18 +44,18 @@ public:
     int searchCut(int depth, int beta, bool banNullMove = false);
     int searchQ(int alpha, int beta, int leftDistance);
 
-protected:
+  protected:
     const int Q_DEPTH = 64;
     const int Q_DEPTH_CHECKING = 8;
 
-protected:
-    Trick nullAndDeltaPruning(int& alpha, int& beta, int& vlBest) const;
-    Trick mateDistancePruning(int alpha, int& beta) const;
+  protected:
+    Trick nullAndDeltaPruning(int &alpha, int &beta, int &vlBest) const;
+    Trick mateDistancePruning(int alpha, int &beta) const;
     Trick futilityPruning(int alpha, int beta, int depth) const;
     Trick multiProbCut(SEARCH_TYPE searchType, int alpha, int beta, int depth);
 };
 
-Trick Search::nullAndDeltaPruning(int& alpha, int& beta, int& vlBest) const
+Trick Search::nullAndDeltaPruning(int &alpha, int &beta, int &vlBest) const
 {
     int vl = board.evaluate();
     if (vl >= beta)
@@ -67,7 +70,7 @@ Trick Search::nullAndDeltaPruning(int& alpha, int& beta, int& vlBest) const
     return {};
 }
 
-Trick Search::mateDistancePruning(int alpha, int& beta) const
+Trick Search::mateDistancePruning(int alpha, int &beta) const
 {
     const int vlDistanceMate = INF - board.distance;
     if (vlDistanceMate < beta)
@@ -186,7 +189,7 @@ Result Search::searchMain(int maxDepth, int maxTimeMs = 3)
     // 防止没有可行着法
     if (bestNode.move.id == -1)
     {
-        const Piece& king = board.getPieceByType(board.team == RED ? R_KING : B_KING);
+        const Piece &king = board.getPieceByType(board.team == RED ? R_KING : B_KING);
         bestNode.move = MovesGen::generateMovesOn(board, king.x, king.y)[0];
     }
 
@@ -206,7 +209,7 @@ Result Search::searchOpenBook() const
         uint16_t wmv;
         uint16_t wvl;
 
-        static int bookPosCmp(const Book& bk, int32 hashLock)
+        static int bookPosCmp(const Book &bk, int32 hashLock)
         {
             uint32_t bookLock = bk.dwZobristLock;
             uint32_t boardLock = static_cast<uint32_t>(hashLock);
@@ -223,7 +226,7 @@ Result Search::searchOpenBook() const
         std::fstream file;
         int nLen = 0;
 
-        bool open(const char* szFileName, bool bEdit = false)
+        bool open(const char *szFileName, bool bEdit = false)
         {
             auto mode = bEdit ? (std::ios::in | std::ios::out | std::ios::binary) : (std::ios::in | std::ios::binary);
             file.open(szFileName, mode);
@@ -244,16 +247,16 @@ Result Search::searchOpenBook() const
             }
         }
 
-        void read(Book& bk, int nMid)
+        void read(Book &bk, int nMid)
         {
             file.seekg(nMid * sizeof(Book), std::ios::beg);
-            file.read(reinterpret_cast<char*>(&bk), sizeof(Book));
+            file.read(reinterpret_cast<char *>(&bk), sizeof(Book));
         }
 
-        void write(const Book& bk, int nMid)
+        void write(const Book &bk, int nMid)
         {
             file.seekp(nMid * sizeof(Book), std::ios::beg);
-            file.write(reinterpret_cast<const char*>(&bk), sizeof(Book));
+            file.write(reinterpret_cast<const char *>(&bk), sizeof(Book));
         }
     };
 
@@ -275,7 +278,7 @@ Result Search::searchOpenBook() const
     {
         for (int y = 0; y < 10; y++)
         {
-            const PIECEID& pid = board.pieceidOn(x, y);
+            const PIECEID &pid = board.pieceidOn(x, y);
             if (pid != EMPTY_PIECEID)
             {
                 mirrorHashKey ^= HASHKEYS[pid][static_cast<size_t>(8) - x][y];
@@ -376,13 +379,13 @@ Result Search::searchOpenBook() const
     }
 
     // 从大到小排序
-    std::sort(bookMoves.begin(), bookMoves.end(), [](const Move& a, const Move& b) { return a.val > b.val; });
+    std::sort(bookMoves.begin(), bookMoves.end(), [](const Move &a, const Move &b) { return a.val > b.val; });
 
     std::random_device rd;
     std::mt19937 gen(rd());
 
     int vlSum = 0;
-    for (const Move& move : bookMoves)
+    for (const Move &move : bookMoves)
     {
         vlSum += move.val;
     }
@@ -397,7 +400,7 @@ Result Search::searchOpenBook() const
     int vlRandom = dis(gen);
 
     Move bookMove;
-    for (const Move& move : bookMoves)
+    for (const Move &move : bookMoves)
     {
         vlRandom -= move.val;
         if (vlRandom < 0)
@@ -426,7 +429,7 @@ Result Search::searchRoot(int depth)
     int vl = -INF;
     int vlBest = -INF;
 
-    for (const Move& move : rootMoves)
+    for (const Move &move : rootMoves)
     {
         if (stop)
         {
@@ -532,7 +535,7 @@ int Search::searchPV(int depth, int alpha, int beta)
         int vl = -INF;
         MOVES killerAvailableMoves = this->killer->get(board);
 
-        for (const Move& move : killerAvailableMoves)
+        for (const Move &move : killerAvailableMoves)
         {
             board.doMove(move);
 
@@ -583,7 +586,7 @@ int Search::searchPV(int depth, int alpha, int beta)
 
         this->history->sort(availableMoves);
 
-        for (const Move& move : availableMoves)
+        for (const Move &move : availableMoves)
         {
             board.doMove(move);
 
@@ -722,12 +725,10 @@ int Search::searchCut(int depth, int beta, bool banNullMove)
     {
         int vl = -INF;
         MOVES killerAvailableMoves = this->killer->get(board);
-        for (const Move& move : killerAvailableMoves)
+        for (const Move &move : killerAvailableMoves)
         {
             board.doMove(move);
-
             int vl = -searchCut(depth - 1, -beta + 1);
-
             board.undoMove();
 
             if (vl > vlBest)
@@ -756,7 +757,7 @@ int Search::searchCut(int depth, int beta, bool banNullMove)
 
         this->history->sort(availableMoves);
 
-        for (const Move& move : availableMoves)
+        for (const Move &move : availableMoves)
         {
             board.doMove(move);
 
@@ -843,7 +844,7 @@ int Search::searchQ(int alpha, int beta, int leftDistance)
     // 搜索
     MOVES availableMoves = mChecking ? MovesGen::getMoves(board) : MovesGen::getCaptureMoves(board);
     this->history->sort(availableMoves);
-    for (const Move& move : availableMoves)
+    for (const Move &move : availableMoves)
     {
         board.doMove(move);
 

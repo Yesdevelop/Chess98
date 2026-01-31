@@ -1,12 +1,1 @@
 BasedOnStyle: Microsoft
-SpacesBeforeTrailingComments: 1  # 尾随注释前的空格数
-SpacesInLineCommentPrefix:
-  Minimum: 1                     # 注释前缀后至少保留 1 个空格
-  Maximum: 1                     # 注释前缀后最多保留 1 个空格
-AccessModifierOffset: -4         # 访问修饰符偏移量为 0 个空格
-IndentWidth: 4                   # 缩进宽度为 4 个空格
-TabWidth: 4                      # Tab 宽度为 4 个空格
-UseTab: Never                    # 不使用 Tab，仅用空格缩进
-ColumnLimit: 120                 # 每行最大字符数
-SortIncludes: true               # 自动排序 #include 语句
-PointerAlignment: Left           # 指针和引用对齐

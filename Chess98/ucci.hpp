@@ -2,7 +2,7 @@
 
 class UCCI
 {
-public:
+  public:
     UCCI()
     {
         std::string defaultFen = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1";
@@ -10,20 +10,20 @@ public:
         cli();
     };
 
-public:
+  public:
     void cli();
 
-public:
+  public:
     void ucci() const;
     void isready() const;
-    void setoption(const std::string& name, const std::string& value);
-    void position(const std::string& fenCode, const MOVES& moves);
-    void banmoves(const MOVES& moves);
+    void setoption(const std::string &name, const std::string &value);
+    void position(const std::string &fenCode, const MOVES &moves);
+    void banmoves(const MOVES &moves);
     void go(int time, int depth);
     void stop();
     void quit();
 
-public:
+  public:
     std::unique_ptr<Search> search = nullptr;
     int maxTime = 3000;
     int maxDepth = 20;
@@ -32,7 +32,7 @@ public:
     Result searchResult{};
     std::thread searchThread{};
 
-public:
+  public:
     std::string fen() const
     {
         return pieceidmapToFen(search->board.pieceidMap, search->board.team);
@@ -128,7 +128,7 @@ void UCCI::cli()
                 int depthArg = maxDepth;
 
                 size_t pos = 2;
-                auto nextToken = [&](size_t& p) -> std::string {
+                auto nextToken = [&](size_t &p) -> std::string {
                     p = cmd.find_first_not_of(' ', p);
                     if (p == std::string::npos)
                         return "";
@@ -206,7 +206,7 @@ void UCCI::isready() const
 }
 
 // setoption my_option_name my_option_value
-void UCCI::setoption(const std::string& name, const std::string& value)
+void UCCI::setoption(const std::string &name, const std::string &value)
 {
     if (name == "usebook")
     {
@@ -219,21 +219,21 @@ void UCCI::setoption(const std::string& name, const std::string& value)
 }
 
 // position my_startpos_fen my_moves
-void UCCI::position(const std::string& fenCode, const MOVES& moves)
+void UCCI::position(const std::string &fenCode, const MOVES &moves)
 {
     PIECEID_MAP pieceidMap = fenToPieceidmap(fenCode);
     TEAM team = (fenCode.find("w") != std::string::npos) ? RED : BLACK;
     search = std::make_unique<Search>(pieceidMap, team);
-    for (const Move& move : moves)
+    for (const Move &move : moves)
     {
         search->board.doMove(move);
     }
 }
 
 // banmove my_banned_moves
-void UCCI::banmoves(const MOVES& moves)
+void UCCI::banmoves(const MOVES &moves)
 {
-    for (const Move& move : moves)
+    for (const Move &move : moves)
     {
         search->bannedMoves[move.id] = 1;
     }
